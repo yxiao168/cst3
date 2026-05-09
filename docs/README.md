@@ -202,9 +202,18 @@ port, update both the template and `config.toml`.
 - The template must be published to the cluster before running `coder-scale-test`.
 - After editing the template, create a new version and update existing workspaces if needed.
 
+## Oh-my-mermaid
+```bash
+$ omm view
+oh-my-mermaid viewer running at http://localhost:3000
+
+```
+
+
 ## References
 
 - [Coder scale testing (upstream)](https://coder.com/docs/admin/infrastructure/scale-testing)
 - [Coder REST API reference](https://coder.com/docs/reference/api)
 - [Design spec](superpowers/specs/2026-05-08-coder-scale-testing-design.md)
 - [Implementation plan](superpowers/plans/2026-05-08-coder-scale-testing.md)
+- [Oh-my-mermaid](https://github.com/oh-my-mermaid/oh-my-mermaid)
