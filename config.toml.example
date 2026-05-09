@@ -1,0 +1,112 @@
+# coder-scale-test — annotated example configuration
+#
+# Copy this file to config.toml and fill in the values for your cluster.
+#
+# IMPORTANT: CODER_SESSION_TOKEN must be set in the environment.
+# The tool NEVER reads the session token from this file.
+# Committing a real token to config.toml is a security risk — keep it in the env.
+#
+# Usage:
+#   cp config.toml.example config.toml
+#   export CODER_SESSION_TOKEN="$(coder tokens create --lifetime 24h)"
+#   uv run coder-scale-test --config config.toml
+
+# Base URL of your Coder deployment.
+# Must be a valid http(s) URL. The template referenced by template_name must
+# already exist on this cluster.
+coder_url = "https://coder.example.com"
+
+# Name of the Coder template to use for provisioning workspaces.
+# Prerequisite: the template must already exist on the cluster. The tool does
+# not create templates.
+# The template must expose a tcp-echo app (see [app] below) and a PTY agent.
+template_name = "my-template"
+
+# Number of existing non-admin users to exercise.
+# The tool picks the first num_users non-admin users sorted by created_at.
+# Prerequisite: at least num_users non-admin, active users must exist on the
+# cluster. The tool does not create users.
+num_users = 5
+
+# Number of workspaces to create per user.
+# Total workspaces in a run = num_users * per_user.
+per_user = 2
+
+# Path to the plain-text log file. Parent directory is created if it does not
+# exist. Default is ./scale-run.log if omitted.
+log_file = "./logs/scale-run.log"
+
+# Optional allow-list of usernames to exercise instead of first-N picking.
+# When set: must contain at least num_users entries. The tool uses these
+# usernames directly (in order) rather than querying and sorting by created_at.
+# When omitted (or null): the tool picks the first num_users non-admin users
+# sorted by created_at.
+# Prerequisite: each username in this list must be an active non-admin user.
+# users = ["alice", "bob", "carol", "dave", "eve"]
+users = null
+
+[timeouts]
+# All timeout values are in seconds and must be > 0.
+
+# Maximum seconds to wait for a single workspace to reach "running" after creation.
+provision_workspace = 300
+
+# Maximum seconds for the coder ssh <ws> -- echo <token> round-trip.
+ssh_round_trip = 30
+
+# Maximum seconds for the PTY WebSocket echo round-trip (stage: web_terminal).
+web_terminal_round_trip = 30
+
+# Maximum seconds for the tcp-echo app WebSocket round-trip (stage: app_traffic).
+app_traffic_round_trip = 30
+
+# Maximum seconds for Playwright to find the dashboard ready selector (stage: dashboard).
+# Prerequisite: confirm that dashboard.ready_selector matches the current dashboard UI.
+dashboard_ready = 30
+
+# Maximum seconds to wait for a single workspace deletion during cleanup.
+delete_workspace = 120
+
+[app]
+# TCP port that the tcp-echo application listens on inside the workspace agent.
+# Prerequisite: the template must declare a coder_app resource that exposes this
+# port with slug "tcp-echo" and run a TCP echo server (e.g. socat) on startup.
+# Valid range: 1–65535.
+tcp_port = 7000
+
+[dashboard]
+# CSS selector that Playwright waits for to determine the dashboard is ready.
+# Prerequisite: verify this selector matches the actual dashboard element in the
+# current version of your Coder deployment before running at scale.
+# Example selectors: "nav[aria-label='main']", "[data-testid='workspace-list']"
+ready_selector = "nav[aria-label='main']"
+
+[poll]
+# How often (in seconds) the tool polls for workspace status changes.
+# Applies to wait_for_running and delete_workspace polling loops.
+# Must be > 0. Default: 2.0
+interval_seconds = 2.0
+
+[tls]
+# Whether to verify TLS certificates when connecting to coder_url.
+# Set to false only for self-signed certs in non-production environments.
+# Default: true
+verify = true
+
+[retries]
+# Number of times to retry a failed HTTP request before failing the operation.
+# Set to 0 to disable retries entirely.
+# Default: 3
+count = 3
+
+# Base backoff in seconds between retries (exponential backoff applied by the
+# underlying urllib3 Retry adapter).
+# Must be > 0. Default: 1.0
+backoff_seconds = 1.0
+
+[stages]
+# List of stage names to skip entirely.
+# Valid stage names: "users", "provision", "ssh", "web_terminal", "app_traffic", "dashboard"
+# Example: skip = ["dashboard"] to omit the Playwright stage on a headless-browser-less host.
+# Default: [] (run all stages)
+skip = []

@@ -1,0 +1,30 @@
+[project]
+name = "coder-scale-test"
+version = "0.1.0"
+description = "Serial load-testing tool for Coder clusters."
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.32",
+    "websocket-client>=1.8",
+    "playwright>=1.45",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-mock>=3.12",
+]
+
+[project.scripts]
+coder-scale-test = "coder_scale_test.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/coder_scale_test"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
